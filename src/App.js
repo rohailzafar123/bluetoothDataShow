@@ -15,17 +15,11 @@ import {
   PermissionsAndroid
 } from "react-native";
 
-import Toast from "@remobile/react-native-toast";
 import BluetoothSerial, {
   withSubscription
 } from "react-native-bluetooth-serial-next";
-// import { Buffer } from "buffer";
-// import Button from "./components/Button";
-// import DeviceList from "./components/DeviceList";
 import styles from "./styles";
 import { BluetoothStatus } from 'react-native-bluetooth-status';
-
-// global.Buffer = Buffer;
 
 const { width, height } = Dimensions.get('window');
 
@@ -48,28 +42,21 @@ class App extends React.Component {
     this.locationPermission();
     this.bluetoothEn()
     this.bluetoothCheck();
-    setInterval(() => {
-      
-    }, 100);
-    
   }
+
 // Check bluetooth Status
   bluetoothCheck = () => {
       BluetoothStatus.state().then((isEnabled) =>{
         this.setState({status:isEnabled})
-        // console.log(isEnabled)
       })
   }
 
 // Start the scanning 
-// Change the code
-// change name 
-// change parameters like (){    = () => {}
   StartScanning = () => {
     BluetoothSerial.enable();
-      this.setState({ isEnabled: !this.state.isEnabled })
+      this.setState({ isEnabled: true })
       BluetoothSerial.listUnpaired().then((data) => {
-        // console.log(data)
+        console.log(data)
         this.setState({ comingData: data })
       });
   };
@@ -99,22 +86,16 @@ class App extends React.Component {
               console.log(values)
             });
             BluetoothSerial.on('read', (dataGet) => {
-              console.log(`DATA FROM BLUETOOTH:`, dataGet.data);
-              // const dataa = toS(data.data;
-              // this.setState({devices:this.state.devices.push(dataa)})
-              this.state.deviceData.push(data)
+              let bleData = [];
+              bleData.push(dataGet.data)
+              this.setState({deviceData: bleData, isEnabled:false,})
             });
           });
       })
   }
 
-  proceed() {
-    alert('Location Permission Needed');
-  }
-
 // Take the location permission 
   locationPermission = () => {
-    var that = this;
     //Checking for the permission just after component loaded
     async function requestCameraPermission() {
       //Calling the permission function
@@ -129,7 +110,8 @@ class App extends React.Component {
   };
   
   // render the Data those device you selected
-  _renderMyList = ({ item }) => (
+  _renderMyList = ({ item }) => {
+    return(
     <View style={{ flex: 1, }}>
       <View style={{ alignSelf: 'center' }}>
         <Text style={{ textAlign: 'center', fontSize: 20 }}>
@@ -137,15 +119,16 @@ class App extends React.Component {
         </Text>
       </View>
     </View>
-  )
+ ) }
+
   render() {
-    const { isEnabled, device, devices, scanning, processing } = this.state;
-    // console.log('iddata : ', this.state.deviceid)
     return (
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.topBar}>
           <Text style={styles.heading}>Bluetooth Data show</Text>
           <View style={styles.enableInfoWrapper}>
+
+            {/* Scan Icon */}
             <ActivityIndicator
               style={styles.activityIndicator}
               animating={this.state.isEnabled}
@@ -153,16 +136,13 @@ class App extends React.Component {
               color="white"
             />
 
-            {/* Action Scan the bluetooth devices */}
+            {/* Scan & Stop Botton */}
             {this.state.isEnabled == false ? (
               <View
                 style={styles.scanButtun}>
                 <TouchableOpacity
                   onPress={() => this.StartScanning()}>
-                  <Text style={{
-                    fontSize: width * .04,
-                    color: 'white'
-                  }}>Scan</Text>
+                  <Text style={styles.scanText}>Scan</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -170,19 +150,20 @@ class App extends React.Component {
                   style={styles.scanButtun}>
                   <TouchableOpacity
                     onPress={() => this.stopScanning()}>
-                    <Text style={{
-                      fontSize: width * .04,
-                      color: 'white'
-
-                    }}>Stop</Text>
+                    <Text style={styles.scanText}>Stop</Text>
                   </TouchableOpacity>
                 </View>
               )}
-            {/* <Switch onValueChange={this.toggleBluetooth} value={isEnabled} /> */}
           </View>
         </View>
         <View>
-
+          
+          {/*  Show Data Connect Device */}
+        <FlatList
+            style={{ marginTop: 10 }}
+            data={this.state.deviceData}
+            renderItem={this._renderMyList}
+          />
 
           {/* Show the unpaired Device in list */}
           {this.state.isEnabled &&
@@ -195,16 +176,11 @@ class App extends React.Component {
                   onPress={() => this.connectDevice(
                     { deviceId: item.id }
                   )}>
-                  <Text style={{ fontSize: 20,color:'white' }}>{item.name}</Text>
-                  <Text style={{ fontSize: 12, marginTop: 4,color:'white' }}>{item.id}</Text>
+                  <Text style={styles.bottonHeading}>{item.name}</Text>
+                  <Text style={styles.bottonText}>{item.id}</Text>
                 </TouchableOpacity>
               );
             })}
-          <FlatList
-            style={{ marginTop: 10 }}
-            data={this.state.deviceData}
-            renderItem={this._renderMyList}
-          />
         </View>
       </SafeAreaView>
     );
